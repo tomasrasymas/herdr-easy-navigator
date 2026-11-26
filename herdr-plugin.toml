@@ -1,0 +1,20 @@
+id = "tab-navigator"
+name = "Tab Navigator"
+version = "0.1.0"
+min_herdr_version = "0.9.5"
+description = "Walk the tabs of the current workspace with the arrow keys, like the workspace picker"
+platforms = ["linux", "macos"]
+
+[[actions]]
+id = "open"
+title = "Navigate tabs"
+contexts = ["global", "workspace", "tab", "pane"]
+command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin \"$HERDR_PLUGIN_ID\" --entrypoint navigator"]
+
+[[panes]]
+id = "navigator"
+title = "Tabs"
+placement = "popup"
+width = "70%"
+height = 4
+command = ["node", "--disable-warning=ExperimentalWarning", "src/navigator.ts"]
