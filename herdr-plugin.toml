@@ -1,12 +1,12 @@
-id = "tab-navigator"
-name = "Tab Navigator"
+id = "easy-navigator"
+name = "Easy Navigator"
 version = "0.1.0"
 min_herdr_version = "0.9.5"
-description = "Walk the tabs of the current workspace with the arrow keys, like the workspace picker"
+description = "Arrow-key navigation for herdr: pick a tab with prefix+t, hop between panes with prefix+p"
 platforms = ["linux", "macos"]
 
 [[actions]]
-id = "open"
+id = "tabs"
 title = "Navigate tabs"
 contexts = ["global", "workspace", "tab", "pane"]
 command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin \"$HERDR_PLUGIN_ID\" --entrypoint navigator"]
@@ -18,3 +18,17 @@ placement = "popup"
 width = "70%"
 height = 4
 command = ["node", "--disable-warning=ExperimentalWarning", "src/navigator.ts"]
+
+[[actions]]
+id = "panes"
+title = "Navigate panes"
+contexts = ["global", "workspace", "tab", "pane"]
+command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin \"$HERDR_PLUGIN_ID\" --entrypoint panes"]
+
+[[panes]]
+id = "panes"
+title = "Panes"
+placement = "popup"
+width = 46
+height = 3
+command = ["node", "--disable-warning=ExperimentalWarning", "src/panes.ts"]

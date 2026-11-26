@@ -12,7 +12,7 @@ let seq = 0;
 
 export function call<T = any>(method: string, params: object = {}, timeoutMs = 3000): Promise<T> {
   return new Promise((resolve, reject) => {
-    const id = `tabnav_${process.pid}_${++seq}`;
+    const id = `easynav_${process.pid}_${++seq}`;
     const sock = net.createConnection(SOCKET_PATH);
     let buf = "";
     let done = false;

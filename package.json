@@ -1,8 +1,8 @@
 {
-  "name": "herdr-tab-navigator",
+  "name": "herdr-easy-navigator",
   "version": "0.1.0",
   "private": true,
-  "description": "Walk herdr tabs with the arrow keys",
+  "description": "Arrow-key tab and pane navigation for herdr",
   "type": "module",
   "engines": {
     "node": ">=23.6"

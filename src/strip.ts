@@ -4,10 +4,13 @@
 export type Key =
   | { kind: "left" }
   | { kind: "right" }
+  | { kind: "up" }
+  | { kind: "down" }
   | { kind: "first" }
   | { kind: "last" }
   | { kind: "jump"; index: number }
-  | { kind: "done" };
+  | { kind: "confirm" }
+  | { kind: "cancel" };
 
 /** Decode one chunk of raw terminal input into keys. */
 export function decodeKeys(chunk: string): Key[] {
@@ -20,21 +23,26 @@ export function decodeKeys(chunk: string): Key[] {
       const code = seq[1];
       if (code === "D") keys.push({ kind: "left" });
       else if (code === "C") keys.push({ kind: "right" });
+      else if (code === "A") keys.push({ kind: "up" });
+      else if (code === "B") keys.push({ kind: "down" });
       else if (code === "H" || code === "1~") keys.push({ kind: "first" });
       else if (code === "F" || code === "4~") keys.push({ kind: "last" });
       i += seq[0].length;
       continue;
     }
     const c = chunk[i++];
-    if (c === "\x1b" || c === "\r" || c === "\n" || c === "q" || c === "\x03") keys.push({ kind: "done" });
+    if (c === "\r" || c === "\n") keys.push({ kind: "confirm" });
+    else if (c === "\x1b" || c === "q" || c === "\x03") keys.push({ kind: "cancel" });
     else if (c === "h") keys.push({ kind: "left" });
     else if (c === "l") keys.push({ kind: "right" });
+    else if (c === "k") keys.push({ kind: "up" });
+    else if (c === "j") keys.push({ kind: "down" });
     else if (c >= "1" && c <= "9") keys.push({ kind: "jump", index: Number(c) - 1 });
   }
   return keys;
 }
 
-/** New selected index after a key, wrapping at both ends. Null for "done". */
+/** New selected index after a key, wrapping at both ends. Null for confirm/cancel. */
 export function move(selected: number, count: number, key: Key): number | null {
   if (count === 0) return null;
   switch (key.kind) {
@@ -42,13 +50,17 @@ export function move(selected: number, count: number, key: Key): number | null {
       return (selected - 1 + count) % count;
     case "right":
       return (selected + 1) % count;
+    case "up":
+    case "down":
+      return selected;
     case "first":
       return 0;
     case "last":
       return count - 1;
     case "jump":
       return key.index < count ? key.index : selected;
-    case "done":
+    case "confirm":
+    case "cancel":
       return null;
   }
 }

@@ -1,5 +1,6 @@
 // Popup entrypoint: a strip of the current workspace's tabs. Left/right (or
-// h/l) switch the active tab live, 1-9 jump, Enter/Esc/q close the popup.
+// h/l) and 1-9 move the selection; Enter switches to the selected tab and
+// closes, Esc/q close without switching.
 
 import { focusTab, focusedWorkspace, listTabs } from "./herdr.ts";
 import type { Tab } from "./herdr.ts";
@@ -22,27 +23,19 @@ function draw() {
   const strip = cells.map((c) => (c.selected ? SELECTED + c.text + RESET : c.text)).join(" ");
   const left = moreLeft ? DIM + "‹ " + RESET : "  ";
   const right = moreRight ? DIM + " ›" + RESET : "";
-  const hint = DIM + " ←/→ switch   1-9 jump   enter/esc done" + RESET;
+  const hint = DIM + " ←/→ select   enter go   esc cancel" + RESET;
   process.stdout.write(`\x1b[H\x1b[2K${left}${strip}${right}\r\n\x1b[2K${hint}`);
 }
 
-// Focus calls are coalesced: holding an arrow only focuses the latest tab.
-let focusing = false;
-let wanted: string | null = null;
+let going = false;
 
-async function focusSelected() {
-  wanted = tabs[selected]?.tab_id ?? null;
-  if (focusing) return;
-  focusing = true;
-  try {
-    while (wanted) {
-      const id = wanted;
-      wanted = null;
-      await focusTab(id).catch(() => {});
-    }
-  } finally {
-    focusing = false;
-  }
+/** Switch to the selected tab (unless it's already active) and close. */
+async function go() {
+  if (going) return;
+  going = true;
+  const tab = tabs[selected];
+  if (tab && !tab.focused) await focusTab(tab.tab_id).catch(() => {});
+  exit();
 }
 
 function exit() {
@@ -62,12 +55,10 @@ async function main() {
   process.stdin.setEncoding("utf8");
   process.stdin.on("data", (chunk: string) => {
     for (const key of decodeKeys(chunk)) {
+      if (key.kind === "confirm") return void go();
       const next = move(selected, tabs.length, key);
       if (next === null) return exit();
-      if (next !== selected) {
-        selected = next;
-        void focusSelected();
-      }
+      selected = next;
     }
     draw();
   });
