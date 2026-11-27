@@ -58,3 +58,72 @@ export async function listTabs(workspaceId: string): Promise<Tab[]> {
 export async function focusTab(tabId: string): Promise<void> {
   await call("tab.focus", { tab_id: tabId });
 }
+
+export interface Workspace {
+  workspace_id: string;
+  label: string;
+  focused: boolean;
+}
+
+export interface Agent {
+  pane_id: string;
+  workspace_id: string;
+  tab_id: string;
+  agent: string;
+  name?: string;
+  agent_status: string;
+  focused: boolean;
+  cwd?: string;
+  terminal_title_stripped?: string;
+}
+
+export async function listWorkspaces(): Promise<Workspace[]> {
+  const r = await call<{ workspaces: Workspace[] }>("workspace.list");
+  return r.workspaces;
+}
+
+export async function listAgents(): Promise<Agent[]> {
+  const r = await call<{ agents: Agent[] }>("agent.list");
+  return r.agents;
+}
+
+/** Focus an agent's pane, switching workspace and tab as needed. */
+export async function focusAgent(paneId: string): Promise<void> {
+  await call("agent.focus", { target: paneId });
+}
+
+export interface Pane {
+  pane_id: string;
+  tab_id: string;
+  workspace_id: string;
+  focused: boolean;
+  label?: string;
+  cwd?: string;
+}
+
+export async function listPanes(): Promise<Pane[]> {
+  const r = await call<{ panes: Pane[] }>("pane.list");
+  return r.panes;
+}
+
+/** Open a new tab named `label` in `workspaceId` and switch to it. */
+export async function createTab(workspaceId: string, label: string, cwd?: string): Promise<void> {
+  await call("tab.create", { workspace_id: workspaceId, label, focus: true, cwd: cwd ?? null });
+}
+
+export async function renameTab(tabId: string, label: string): Promise<void> {
+  await call("tab.rename", { tab_id: tabId, label });
+}
+
+export async function closeTab(tabId: string): Promise<void> {
+  await call("tab.close", { tab_id: tabId });
+}
+
+/** Split `paneId`, putting the new pane to its right or below it, and focus the new pane. */
+export async function splitPane(paneId: string, direction: "right" | "down", cwd?: string): Promise<void> {
+  await call("pane.split", { target_pane_id: paneId, direction, focus: true, cwd: cwd ?? null });
+}
+
+export async function closePane(paneId: string): Promise<void> {
+  await call("pane.close", { pane_id: paneId });
+}

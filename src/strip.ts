@@ -10,7 +10,8 @@ export type Key =
   | { kind: "last" }
   | { kind: "jump"; index: number }
   | { kind: "confirm" }
-  | { kind: "cancel" };
+  | { kind: "cancel" }
+  | { kind: "char"; ch: string };
 
 /** Decode one chunk of raw terminal input into keys. */
 export function decodeKeys(chunk: string): Key[] {
@@ -38,6 +39,7 @@ export function decodeKeys(chunk: string): Key[] {
     else if (c === "k") keys.push({ kind: "up" });
     else if (c === "j") keys.push({ kind: "down" });
     else if (c >= "1" && c <= "9") keys.push({ kind: "jump", index: Number(c) - 1 });
+    else if (c >= " " && c <= "~") keys.push({ kind: "char", ch: c });
   }
   return keys;
 }
@@ -52,6 +54,7 @@ export function move(selected: number, count: number, key: Key): number | null {
       return (selected + 1) % count;
     case "up":
     case "down":
+    case "char":
       return selected;
     case "first":
       return 0;
@@ -77,16 +80,28 @@ function cellText(label: string, index: number, selected: boolean): string {
   return selected ? `▸${index + 1} ${name}◂` : ` ${index + 1} ${name} `;
 }
 
+function actionText(label: string, selected: boolean): string {
+  return selected ? `▸${label}◂` : ` ${label} `;
+}
+
 /**
- * Lay out the tab cells in `width` columns, scrolling so the selected tab is
- * visible. `more` flags tabs cut off on either side.
+ * Lay out the tab cells, followed by unnumbered `actions` cells, in `width`
+ * columns, scrolling so the selected cell is visible. `more` flags cells cut
+ * off on either side. Indexes past the tabs select the actions.
  */
 export function layoutStrip(
   labels: string[],
   selected: number,
   width: number,
+  actions: string[] = [],
 ): { cells: Cell[]; moreLeft: boolean; moreRight: boolean } {
-  const all = labels.map((l, i) => ({ text: cellText(l || "tab", i, i === selected), selected: i === selected }));
+  const all = [
+    ...labels.map((l, i) => ({ text: cellText(l || "tab", i, i === selected), selected: i === selected })),
+    ...actions.map((a, j) => {
+      const i = labels.length + j;
+      return { text: actionText(a, i === selected), selected: i === selected };
+    }),
+  ];
   const gap = 1;
   const room = Math.max(1, width - 4); // keep space for the ‹ › markers
   let start = selected;

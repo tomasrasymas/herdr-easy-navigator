@@ -2,7 +2,7 @@ id = "easy-navigator"
 name = "Easy Navigator"
 version = "0.1.0"
 min_herdr_version = "0.9.5"
-description = "Arrow-key navigation for herdr: pick a tab with prefix+t, hop between panes with prefix+p"
+description = "Arrow-key navigation for herdr: pick a tab with prefix+t, hop between panes with prefix+p, jump to an agent with prefix+a"
 platforms = ["linux", "macos"]
 
 [[actions]]
@@ -29,6 +29,20 @@ command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin \"$HE
 id = "panes"
 title = "Panes"
 placement = "popup"
-width = 46
+width = 72
 height = 3
 command = ["node", "--disable-warning=ExperimentalWarning", "src/panes.ts"]
+
+[[actions]]
+id = "agents"
+title = "Navigate agents"
+contexts = ["global", "workspace", "tab", "pane"]
+command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin \"$HERDR_PLUGIN_ID\" --entrypoint agents"]
+
+[[panes]]
+id = "agents"
+title = "Agents"
+placement = "popup"
+width = "70%"
+height = 14
+command = ["node", "--disable-warning=ExperimentalWarning", "src/agents.ts"]

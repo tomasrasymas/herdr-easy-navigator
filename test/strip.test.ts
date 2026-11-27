@@ -59,3 +59,28 @@ test("long labels are shortened", () => {
   assert.ok(r.cells[0].text.length < 30);
   assert.ok(r.cells[0].text.includes("…"));
 });
+
+test("other printable keys decode as chars and don't move the selection", () => {
+  assert.deepEqual(decodeKeys("nx-"), [
+    { kind: "char", ch: "n" },
+    { kind: "char", ch: "x" },
+    { kind: "char", ch: "-" },
+  ]);
+  assert.equal(move(2, 4, { kind: "char", ch: "n" }), 2);
+});
+
+test("action cells follow the tabs, unnumbered, and can be selected", () => {
+  const { cells } = layoutStrip(["api", "web"], 3, 200, ["n new", "c close"]);
+  assert.deepEqual(
+    cells.map((c) => c.text),
+    [" 1 api ", " 2 web ", " n new ", "▸c close◂"],
+  );
+  assert.equal(cells[3].selected, true);
+});
+
+test("a selected action scrolls into view", () => {
+  const labels = Array.from({ length: 20 }, (_, i) => `tab${i}`);
+  const { cells, moreLeft } = layoutStrip(labels, 21, 40, ["n new", "c close"]);
+  assert.equal(cells.at(-1)?.text, "▸c close◂");
+  assert.equal(moreLeft, true);
+});
